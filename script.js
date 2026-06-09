@@ -53,7 +53,7 @@ const playlist = [
     title: "Champagne Coast",
     artist: "Blood Orange",
     albumCover: "https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e02a790082aa893b1f841d7d545",
-    note: "For glowing windows, late messages, and missing you in a pretty way.",
+    note: "this song especially reminds of the first time we went out on my bday",
     duration: "4:52",
     color: "#f04e78",
     spotifyEmbedUrl: "https://open.spotify.com/embed/track/0AIpGG5dxEgnAymhdJRSZ0",
