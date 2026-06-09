@@ -149,9 +149,14 @@ const previousButton = document.querySelector("#previous-button");
 const nextButton = document.querySelector("#next-button");
 const shuffleButton = document.querySelector("#shuffle-button");
 const repeatButton = document.querySelector("#repeat-button");
+const devicesText = document.querySelector(".devices-text");
+const previewAudio = new Audio();
 
 let currentSongIndex = 0;
 let isPlaying = false;
+let previewRequestId = 0;
+
+previewAudio.preload = "none";
 
 function getDurationSeconds(duration) {
   const [minutes, seconds] = duration.split(":").map(Number);
@@ -159,9 +164,64 @@ function getDurationSeconds(duration) {
 }
 
 function formatTime(totalSeconds) {
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = String(totalSeconds % 60).padStart(2, "0");
+  const safeSeconds = Number.isFinite(totalSeconds) ? Math.max(0, Math.floor(totalSeconds)) : 0;
+  const minutes = Math.floor(safeSeconds / 60);
+  const seconds = String(safeSeconds % 60).padStart(2, "0");
   return `${minutes}:${seconds}`;
+}
+
+function fetchJsonp(url) {
+  return new Promise((resolve, reject) => {
+    const callbackName = `previewCallback${Date.now()}${Math.floor(Math.random() * 1000)}`;
+    const script = document.createElement("script");
+    const cleanup = () => {
+      script.remove();
+      delete window[callbackName];
+    };
+    const timer = window.setTimeout(() => {
+      cleanup();
+      reject(new Error("Preview request timed out."));
+    }, 9000);
+
+    window[callbackName] = (data) => {
+      window.clearTimeout(timer);
+      cleanup();
+      resolve(data);
+    };
+
+    script.onerror = () => {
+      window.clearTimeout(timer);
+      cleanup();
+      reject(new Error("Preview request failed."));
+    };
+
+    script.src = `${url}&output=jsonp&callback=${callbackName}`;
+    document.body.appendChild(script);
+  });
+}
+
+async function getPreviewUrl(song) {
+  if (song.previewUrl) {
+    return song.previewUrl;
+  }
+
+  const query = encodeURIComponent(`${song.title} ${song.artist}`);
+  const data = await fetchJsonp(`https://api.deezer.com/search?q=${query}`);
+  const matches = Array.isArray(data.data) ? data.data : [];
+  const titleNeedle = song.title.toLowerCase().replace(/\s*\(feat\..*?\)/, "");
+  const artistNeedle = song.artist.split(",")[0].toLowerCase();
+  const match = matches.find((item) => {
+    const itemTitle = `${item.title || ""} ${item.title_short || ""}`.toLowerCase();
+    const itemArtist = item.artist && item.artist.name ? item.artist.name.toLowerCase() : "";
+    return item.preview && itemTitle.includes(titleNeedle) && itemArtist.includes(artistNeedle);
+  }) || matches.find((item) => item.preview);
+
+  if (!match || !match.preview) {
+    throw new Error("No preview available.");
+  }
+
+  song.previewUrl = match.preview;
+  return song.previewUrl;
 }
 
 function createSongCard(song, index) {
@@ -190,8 +250,12 @@ function createSongCard(song, index) {
 function renderPlayer(index) {
   const song = playlist[index];
   const durationSeconds = getDurationSeconds(song.duration);
-  const elapsedSeconds = isPlaying ? Math.floor(durationSeconds * 0.38) : 0;
-  const remainingSeconds = durationSeconds - elapsedSeconds;
+  const isCurrentPreview = previewAudio.dataset.songIndex === String(index);
+  const previewDuration = isCurrentPreview && Number.isFinite(previewAudio.duration)
+    ? previewAudio.duration
+    : durationSeconds;
+  const elapsedSeconds = isCurrentPreview ? previewAudio.currentTime : 0;
+  const remainingSeconds = previewDuration - elapsedSeconds;
 
   albumCover.style.setProperty("--cover-color", song.color);
   albumCover.style.backgroundImage = `linear-gradient(rgba(255, 143, 189, 0.08), rgba(231, 61, 98, 0.18)), url("${song.albumCover}")`;
@@ -200,17 +264,21 @@ function renderPlayer(index) {
   playerNote.textContent = song.note;
   elapsedTime.textContent = formatTime(elapsedSeconds);
   timeLeft.textContent = `-${formatTime(remainingSeconds)}`;
-  progressFill.style.width = isPlaying ? "38%" : "0%";
+  progressFill.style.width = isCurrentPreview && previewDuration > 0
+    ? `${Math.min((elapsedSeconds / previewDuration) * 100, 100)}%`
+    : "0%";
   spotifyLink.href = song.spotifyTrackUrl;
   spotifyEmbed.src = song.spotifyEmbedUrl;
-  playButton.textContent = isPlaying ? "❚❚" : "▶";
+  playButton.textContent = isPlaying ? "II" : "Play";
   playButton.setAttribute("aria-label", isPlaying ? "Pause" : "Play");
 }
 
 function openPlayer(index) {
   currentSongIndex = index;
   isPlaying = false;
+  previewAudio.pause();
   renderPlayer(currentSongIndex);
+  devicesText.textContent = "Tap play for a 30-second preview";
   modal.classList.add("is-open");
   modal.setAttribute("aria-hidden", "false");
   document.body.classList.add("modal-open");
@@ -218,6 +286,8 @@ function openPlayer(index) {
 }
 
 function closePlayer() {
+  previewAudio.pause();
+  isPlaying = false;
   modal.classList.remove("is-open");
   modal.setAttribute("aria-hidden", "true");
   document.body.classList.remove("modal-open");
@@ -225,18 +295,57 @@ function closePlayer() {
 }
 
 function showSong(index) {
+  previewAudio.pause();
   currentSongIndex = (index + playlist.length) % playlist.length;
   isPlaying = false;
   renderPlayer(currentSongIndex);
+  devicesText.textContent = "Tap play for a 30-second preview";
+}
+
+async function playPreview() {
+  const requestId = ++previewRequestId;
+  const song = playlist[currentSongIndex];
+
+  if (!song.previewUrl || previewAudio.dataset.songIndex !== String(currentSongIndex)) {
+    devicesText.textContent = "Loading preview...";
+    playButton.textContent = "...";
+    const previewUrl = await getPreviewUrl(song);
+
+    if (requestId !== previewRequestId) {
+      return;
+    }
+
+    previewAudio.src = previewUrl;
+    previewAudio.dataset.songIndex = String(currentSongIndex);
+    previewAudio.currentTime = 0;
+  }
+
+  await previewAudio.play();
+  isPlaying = true;
+  renderPlayer(currentSongIndex);
+  devicesText.textContent = "Preview playing";
 }
 
 playlist.forEach((song, index) => {
   songList.appendChild(createSongCard(song, index));
 });
 
-playButton.addEventListener("click", () => {
-  isPlaying = !isPlaying;
-  renderPlayer(currentSongIndex);
+playButton.addEventListener("click", async () => {
+  try {
+    if (isPlaying) {
+      previewAudio.pause();
+      isPlaying = false;
+      renderPlayer(currentSongIndex);
+      devicesText.textContent = "Preview paused";
+      return;
+    }
+
+    await playPreview();
+  } catch (error) {
+    isPlaying = false;
+    renderPlayer(currentSongIndex);
+    devicesText.textContent = "Preview unavailable. Open in Spotify.";
+  }
 });
 
 previousButton.addEventListener("click", () => {
@@ -256,8 +365,21 @@ shuffleButton.addEventListener("click", () => {
 });
 
 repeatButton.addEventListener("click", () => {
+  previewAudio.currentTime = 0;
   isPlaying = false;
   renderPlayer(currentSongIndex);
+});
+
+previewAudio.addEventListener("timeupdate", () => {
+  if (previewAudio.dataset.songIndex === String(currentSongIndex)) {
+    renderPlayer(currentSongIndex);
+  }
+});
+
+previewAudio.addEventListener("ended", () => {
+  isPlaying = false;
+  renderPlayer(currentSongIndex);
+  devicesText.textContent = "Preview ended";
 });
 
 closeButton.addEventListener("click", closePlayer);
