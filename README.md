@@ -6,7 +6,7 @@ A static GitHub Pages playlist site with a cute pink love theme inspired by bow-
 
 - `index.html` contains the page structure.
 - `styles.css` contains the responsive layout, bows, hearts, sparkles, and animations.
-- `script.js` stores the playlist data and renders the song cards.
+- `script.js` stores the playlist data, renders the song launch cards, and controls the phone-style player modal.
 - `README.md` explains how to edit and publish the site.
 
 ## Edit Songs
@@ -18,6 +18,8 @@ Open `script.js` and update the `playlist` array:
   title: "Your Song Title",
   artist: "Artist Name",
   note: "Your personal love note for this song.",
+  duration: "3:18",
+  color: "#ff8fbd",
   embedUrl: "https://open.spotify.com/embed/track/YOUR_TRACK_ID"
 }
 ```
