@@ -13,7 +13,7 @@ const playlist = [
     title: "Freaks",
     artist: "Surf Curse",
     albumCover: "https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e023975b6b899eed4af577f7ba6",
-    note: "A little chaotic, a little dreamy, and somehow still ours.",
+    note: "i still remember when u put on to these indie songs, and now i even llsiten to them",
     duration: "2:27",
     color: "#e73d62",
     spotifyEmbedUrl: "https://open.spotify.com/embed/track/7EkWXAI1wn8Ii883ecd9xr",
