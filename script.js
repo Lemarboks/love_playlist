@@ -73,7 +73,7 @@ const playlist = [
     title: "Show Me How",
     artist: "Men I Trust",
     albumCover: "https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e02deeb617204bc14f4ee87b057",
-    note: "For soft eye contact, shy smiles, and learning each other slowly.",
+    note: "this song also reminds me of thw first time we got to know eachother",
     duration: "3:35",
     color: "#ffd7e8",
     spotifyEmbedUrl: "https://open.spotify.com/embed/track/75IQVo8hqI1iwVZyvkN2VT",
