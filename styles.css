@@ -390,6 +390,16 @@ main {
   z-index: 1;
 }
 
+.card-cover {
+  width: 64px;
+  height: 64px;
+  flex: 0 0 auto;
+  border: 3px solid rgba(255, 143, 189, 0.35);
+  border-radius: 8px;
+  object-fit: cover;
+  box-shadow: 0 8px 18px rgba(191, 63, 104, 0.16);
+}
+
 .song-card h3 {
   margin: 0 0 4px;
   color: var(--red);
@@ -662,6 +672,8 @@ footer {
     radial-gradient(circle at 28% 22%, rgba(255, 255, 255, 0.78) 0 10%, transparent 11%),
     radial-gradient(circle at 72% 70%, rgba(255, 255, 255, 0.34) 0 13%, transparent 14%),
     linear-gradient(135deg, var(--cover-color), #ffe6f0);
+  background-position: center;
+  background-size: cover;
   box-shadow: 0 22px 42px rgba(103, 23, 53, 0.25);
   overflow: hidden;
 }
@@ -692,6 +704,11 @@ footer {
   opacity: 0.5;
 }
 
+.album-cover[style*="url"]::before,
+.album-cover[style*="url"]::after {
+  content: none;
+}
+
 .cover-heart {
   position: absolute;
   left: 50%;
@@ -699,6 +716,7 @@ footer {
   z-index: 2;
   width: 72px;
   height: 64px;
+  opacity: 0.86;
   transform: translateX(-50%) rotate(-8deg);
 }
 

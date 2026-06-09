@@ -17,10 +17,12 @@ Open `script.js` and update the `playlist` array:
 {
   title: "Your Song Title",
   artist: "Artist Name",
+  albumCover: "https://image-cdn-ak.spotifycdn.com/image/YOUR_ALBUM_IMAGE",
   note: "Your personal love note for this song.",
   duration: "3:18",
   color: "#ff8fbd",
-  embedUrl: "https://open.spotify.com/embed/track/YOUR_TRACK_ID"
+  spotifyEmbedUrl: "https://open.spotify.com/embed/track/YOUR_TRACK_ID",
+  spotifyTrackUrl: "https://open.spotify.com/track/YOUR_TRACK_ID"
 }
 ```
 
@@ -31,7 +33,8 @@ Open `script.js` and update the `playlist` array:
 3. Select Share.
 4. Select Embed track.
 5. Copy the embed URL from the iframe `src`.
-6. Paste that URL into the `embedUrl` field in `script.js`.
+6. Paste that URL into the `spotifyEmbedUrl` field in `script.js`.
+7. Paste the normal track link into the `spotifyTrackUrl` field.
 
 The URL should look like this:
 
