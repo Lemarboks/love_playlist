@@ -93,7 +93,7 @@ const playlist = [
     title: "Marry You",
     artist: "Bruno Mars",
     albumCover: "https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e028a9eb5a1f701d1d367a5ea10",
-    note: "For the grin-on-my-face, confetti-in-my-heart kind of love.",
+    note: "because i WANT to marry you",
     duration: "3:50",
     color: "#e73d62",
     spotifyEmbedUrl: "https://open.spotify.com/embed/track/22PMfvdz35fFKYnJyMn077",
